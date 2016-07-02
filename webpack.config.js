@@ -15,10 +15,11 @@ const definePlugin = require('./libs/webpack.defineplugin');
 const commonsChunkPlugin = require('./libs/webpack.commonschunkplugin');
 const cleanWebpackPlugin = require('./libs/webpack.clean');
 const purifyCSS = require('./libs/webpack.purifycss');
+const providePlugin = require('./libs/webpack.provideplugin');
 
 const webpack = require('webpack');
 
-process.env.BABEL_ENV = TARGET;
+const TARGET = process.env.npm_lifecycle_event;
 
 const PATHS = {
     app: path.resolve(__dirname, 'app'),
@@ -28,6 +29,8 @@ const PATHS = {
     ],
     build: path.resolve(__dirname, 'build')
 };
+
+process.env.BABEL_ENV = TARGET;
 
 const common = {
     entry: {
@@ -40,12 +43,14 @@ const common = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            title: 'index'
+            title: 'index',
+            template: 'app/index-template.ejs'
         })
     ],
     resolve: {
         alias: {
-            'react': path.join(__dirname, 'node_modules', 'react')
+            'react': path.join(__dirname, 'node_modules', 'react'),
+            'view': path.join(__dirname, 'app/libs', 'view')
         },
         extensions: ['', '.js', '.jsx', '.css', '.scss']
     }
@@ -53,7 +58,7 @@ const common = {
 
 var config;
 
-switch(process.env.npm_lifecycle_event) {
+switch(TARGET) {
     case 'build':
     case 'stats':
         config = merge(common,
@@ -63,6 +68,9 @@ switch(process.env.npm_lifecycle_event) {
             minify.minify(),
             definePlugin.setFreeVariable('process.env.NODE_ENV', 'production'),
             cleanWebpackPlugin.cleanWebpack(PATHS.build),
+            providePlugin.setProvides({
+                React: 'react'
+            }),
             commonsChunkPlugin.extractBundle({
                 name: 'vendor',
                 entries: Object.keys(pkg.dependencies)
@@ -74,6 +82,9 @@ switch(process.env.npm_lifecycle_event) {
         config = merge(common,
             loaders.es6Loader(PATHS.app),
             loaders.styleLoaders(PATHS.style),
+            providePlugin.setProvides({
+                React: 'react'
+            }),
             devConfig.devServer({
                 host: process.env.HOST,
                 port: process.env.PORT

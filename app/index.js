@@ -1,3 +1,1 @@
-var component = require('./component');
-
-document.body.appendChild(component());
+import Routing from './routing'
