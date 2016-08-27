@@ -16,6 +16,7 @@ const commonsChunkPlugin = require('./libs/webpack.commonschunkplugin');
 const cleanWebpackPlugin = require('./libs/webpack.clean');
 const purifyCSS = require('./libs/webpack.purifycss');
 const providePlugin = require('./libs/webpack.provideplugin');
+const postCSS = require('./libs/webpack.postcss');
 
 const webpack = require('webpack');
 
@@ -60,6 +61,7 @@ var config;
 
 switch(TARGET) {
     case 'build':
+    case 'postinstall':
     case 'stats':
         config = merge(common,
             loaders.es6Loader(PATHS.app),
@@ -75,6 +77,7 @@ switch(TARGET) {
                 name: 'vendor',
                 entries: Object.keys(pkg.dependencies)
             }),
+            postCSS.setPostCSS(),
             prodConfig.prodServer({PATHS})
         );
         break;
